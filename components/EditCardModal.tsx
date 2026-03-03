@@ -8,6 +8,7 @@ export interface EditData {
   due: string
   color: string
   priority: Priority
+  owner: string
 }
 
 interface Props {
@@ -33,6 +34,10 @@ export default function EditCardModal({ data, onChange, onSave, onClose }: Props
 
         <Label>TITEL</Label>
         <input value={data.title} onChange={e => set({ title: e.target.value })}
+          style={inputStyle} />
+
+        <Label>ANSVARLIG / INITIALER</Label>
+        <input value={data.owner} onChange={e => set({ owner: e.target.value })}
           style={inputStyle} />
 
         <Label>BESKRIVELSE</Label>

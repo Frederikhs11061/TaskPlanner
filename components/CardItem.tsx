@@ -89,6 +89,11 @@ export default function CardItem({ card, onToggle, onDelete, onEdit, onDragStart
             {card.due && (
               <span style={{ fontSize:10, color:'#666' }}>📅 {card.due}</span>
             )}
+            {card.owner && (
+              <span style={{ fontSize:10, background:'#1e1e2a', color:'#bbb', borderRadius:20, padding:'2px 7px' }}>
+                {card.owner}
+              </span>
+            )}
           </div>
         </div>
 

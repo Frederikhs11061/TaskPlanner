@@ -4,18 +4,19 @@ import { Priority } from '@/lib/types'
 import { PRIORITY_CONFIG } from '@/lib/constants'
 
 interface Props {
-  onAdd: (title: string, desc: string, priority: Priority) => void
+  onAdd: (title: string, desc: string, priority: Priority, owner: string) => void
   onCancel: () => void
 }
 
 export default function AddCardForm({ onAdd, onCancel }: Props) {
   const [title, setTitle]       = useState('')
   const [desc, setDesc]         = useState('')
+  const [owner, setOwner]       = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
 
   function submit() {
     if (!title.trim()) return
-    onAdd(title.trim(), desc.trim(), priority)
+    onAdd(title.trim(), desc.trim(), priority, owner.trim())
   }
 
   return (
@@ -27,6 +28,13 @@ export default function AddCardForm({ onAdd, onCancel }: Props) {
         onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel(); }}
         placeholder="Opgave titel..."
         style={{ width:'100%', background:'#2a2a38', border:'1px solid #3a3a50', borderRadius:7, padding:'8px 11px', color:'#f0f0f5', fontSize:13 }}
+      />
+      <input
+        value={owner}
+        onChange={e => setOwner(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel(); }}
+        placeholder="Navn / initialer (valgfrit)"
+        style={{ width:'100%', background:'#2a2a38', border:'1px solid #3a3a50', borderRadius:7, padding:'8px 11px', color:'#f0f0f5', fontSize:12 }}
       />
       <textarea
         value={desc}

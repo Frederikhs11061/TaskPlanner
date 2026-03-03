@@ -19,8 +19,8 @@ export default function BoardView({ board, onUpdate }: Props) {
 
   function updateLists(fn: (b: Board) => Board) { onUpdate(fn(board)) }
 
-  function addCard(listId: string, title: string, desc: string, priority: Priority) {
-    const card: Card = { id: uid(), title, desc, done: false, color: CARD_COLORS[0], due: '', priority }
+  function addCard(listId: string, title: string, desc: string, priority: Priority, owner: string) {
+    const card: Card = { id: uid(), title, desc, done: false, color: CARD_COLORS[0], due: '', priority, owner: owner || undefined }
     updateLists(b => ({ ...b, lists: b.lists.map(l => l.id !== listId ? l : { ...l, cards: [...l.cards, card] }) }))
   }
 
@@ -44,13 +44,23 @@ export default function BoardView({ board, onUpdate }: Props) {
 
   function openEdit(card: Card, listId: string) {
     setEditingCard({ card, listId })
-    setEditData({ title: card.title, desc: card.desc, due: card.due, color: card.color, priority: card.priority })
+    setEditData({
+      title: card.title,
+      desc: card.desc,
+      due: card.due,
+      color: card.color,
+      priority: card.priority,
+      owner: card.owner ?? '',
+    })
   }
 
   function saveEdit() {
     if (!editingCard || !editData) return
     updateLists(b => ({ ...b, lists: b.lists.map(l => ({
-      ...l, cards: l.cards.map(c => c.id !== editingCard.card.id ? c : { ...c, ...editData })
+      ...l,
+      cards: l.cards.map(c =>
+        c.id !== editingCard.card.id ? c : { ...c, ...editData }
+      ),
     }))}))
     setEditingCard(null); setEditData(null)
   }

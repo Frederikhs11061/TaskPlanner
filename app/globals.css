@@ -1,0 +1,43 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  background: #0f0f13;
+  color: #f0f0f5;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #1a1a22; }
+::-webkit-scrollbar-thumb { background: #3a3a50; border-radius: 3px; }
+
+input, textarea, button { font-family: inherit; outline: none; }
+
+.card-item { transition: transform .15s, box-shadow .15s; }
+.card-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+
+.action-btn { transition: opacity .15s; opacity: 0; }
+.card-item:hover .action-btn { opacity: 1; }
+
+.board-tab { transition: all .2s; cursor: pointer; }
+.board-tab:hover { background: rgba(255,255,255,.07); }
+
+.list-col { transition: background .15s; }
+.list-col.drag-over { background: rgba(108,99,255,.12) !important; }
+
+.cal-day { transition: all .15s; cursor: pointer; }
+.cal-day:hover { background: rgba(108,99,255,.18) !important; }
+
+.add-card-btn:hover { background: rgba(255,255,255,.06) !important; }
+.search-result { transition: background .15s; }
+.search-result:hover { background: #2a2a3a !important; }
+
+.link-in-desc {
+  color: #8b85ff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(139,133,255,.4);
+  word-break: break-all;
+  transition: color .15s;
+}
+.link-in-desc:hover { color: #b8b4ff; }

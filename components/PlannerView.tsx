@@ -160,20 +160,20 @@ export default function PlannerView({ events, onUpdate }: Props) {
                   )
                 })
               }
-              <div style={{ display:'flex', gap:7, marginTop:8 }}>
+              <div style={{ display:'flex', gap:7, marginTop:8, alignItems:'center' }}>
                 <input
                   value={newEvent}
                   onChange={e => setNewEvent(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') addEvent() }}
                   placeholder="Tilføj begivenhed..."
-                  style={{ flex:1, background:'#22222e', border:'1px solid #3a3a50', borderRadius:8, padding:'8px 11px', color:'#f0f0f5', fontSize:13 }}
+                  style={{ flex:1, minWidth:0, background:'#22222e', border:'1px solid #3a3a50', borderRadius:8, padding:'8px 11px', color:'#f0f0f5', fontSize:13 }}
                 />
                 <input
                   value={eventOwner}
                   onChange={e => setEventOwner(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') addEvent() }}
                   placeholder="Navn / initialer"
-                  style={{ flex:1, background:'#22222e', border:'1px solid #3a3a50', borderRadius:8, padding:'8px 11px', color:'#f0f0f5', fontSize:13 }}
+                  style={{ flex:1, minWidth:0, background:'#22222e', border:'1px solid #3a3a50', borderRadius:8, padding:'8px 11px', color:'#f0f0f5', fontSize:13 }}
                 />
                 <button onClick={addEvent} style={{ background:'#6C63FF', border:'none', borderRadius:8, color:'#fff', padding:'0 13px', cursor:'pointer', fontWeight:700, fontSize:16 }}>+</button>
               </div>

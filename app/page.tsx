@@ -14,8 +14,6 @@ export default function Home() {
 
   const [activeId, setActiveId]       = useState<string>('board-1')
   const [activeTab, setActiveTab]     = useState<'board' | 'planner' | 'overview'>('board')
-  const [searchOpen, setSearchOpen]   = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [addingBoard, setAddingBoard] = useState(false)
   const [newName, setNewName]         = useState('')
   const [newEmoji, setNewEmoji]       = useState('📋')
@@ -116,20 +114,6 @@ export default function Home() {
     if (activeId === id) setActiveId(nb[0]?.id ?? '')
   }
 
-  const normalizedQuery = searchQuery.trim().toLowerCase()
-  const hasQuery = normalizedQuery.length > 0
-
-  const searchResults = hasQuery
-    ? boards.flatMap(b => b.lists.flatMap(l => l.cards
-        .filter(c => {
-          const title = c.title.toLowerCase()
-          const desc  = (c.desc || '').toLowerCase()
-          return title.includes(normalizedQuery) || desc.includes(normalizedQuery)
-        })
-        .map(c => ({ ...c, boardName: b.name, boardEmoji: b.emoji, listName: l.title }))
-      ))
-    : []
-
   if (!boardsLoaded) return null
 
   return (
@@ -145,11 +129,11 @@ export default function Home() {
             <div
               key={b.id}
               className="board-tab"
-              onClick={() => { setActiveId(b.id); setActiveTab('board'); setSearchOpen(false) }}
+              onClick={() => { setActiveId(b.id); setActiveTab('board') }}
               style={{
                 display:'flex', alignItems:'center', gap:5, padding:'5px 11px', borderRadius:8, fontSize:13, whiteSpace:'nowrap',
-                background: activeId === b.id && activeTab === 'board' && !searchOpen ? 'rgba(108,99,255,.25)' : 'transparent',
-                border:     activeId === b.id && activeTab === 'board' && !searchOpen ? '1px solid rgba(108,99,255,.5)' : '1px solid transparent',
+                background: activeId === b.id && activeTab === 'board' ? 'rgba(108,99,255,.25)' : 'transparent',
+                border:     activeId === b.id && activeTab === 'board' ? '1px solid rgba(108,99,255,.5)' : '1px solid transparent',
               }}
             >
               <span>{b.emoji}</span>
@@ -181,19 +165,6 @@ export default function Home() {
         </nav>
 
         <div className="top-bar-actions" style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-          {/* Search */}
-          <button
-            onClick={() => { setSearchOpen(s => !s); setSearchQuery('') }}
-            style={{
-              background: searchOpen ? 'rgba(108,99,255,.25)' : '#1e1e2a',
-              border: searchOpen ? '1px solid rgba(108,99,255,.5)' : '1px solid #2a2a38',
-              borderRadius:9, color: searchOpen ? '#b8b4ff' : '#888',
-              padding:'6px 13px', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', gap:6, flexShrink:0,
-            }}
-          >
-            🔍 <span style={{ fontSize:12, fontWeight:500 }}>Søg</span>
-          </button>
-
           {/* Tab switcher */}
           <div style={{ display:'flex', background:'#1e1e2a', borderRadius:10, padding:3, gap:2, flexShrink:0 }}>
             {([
@@ -201,12 +172,20 @@ export default function Home() {
               { id: 'planner' as const, label: '📅 Kalender' },
               { id: 'overview' as const, label: '⭐ I dag / uge' },
             ]).map(t => (
-              <button key={t.id} onClick={() => { setActiveTab(t.id); setSearchOpen(false) }}
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
                 style={{
-                  background: activeTab === t.id && !searchOpen ? '#6C63FF' : 'transparent',
-                  border:'none', borderRadius:7, padding:'5px 13px', cursor:'pointer', fontSize:12, fontWeight:600,
-                  color: activeTab === t.id && !searchOpen ? '#fff' : '#888',
-                }}>
+                  background: activeTab === t.id ? '#6C63FF' : 'transparent',
+                  border:'none',
+                  borderRadius:7,
+                  padding:'5px 13px',
+                  cursor:'pointer',
+                  fontSize:12,
+                  fontWeight:600,
+                  color: activeTab === t.id ? '#fff' : '#888',
+                }}
+              >
                 {t.label}
               </button>
             ))}
@@ -214,52 +193,14 @@ export default function Home() {
         </div>
       </header>
 
-      {searchOpen && (
-        <div style={{ background:'#13131a', borderBottom:'1px solid #2a2a38', padding:'14px 20px', flexShrink:0 }}>
-          <input
-            autoFocus
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Søg på tværs af alle tavler, lister og opgaver..."
-            style={{ width:'100%', maxWidth:620, background:'#1e1e2a', border:'1px solid #3a3a50', borderRadius:10, padding:'10px 16px', color:'#f0f0f5', fontSize:14 }}
-          />
-          {searchQuery.trim().length > 1 && (
-            <div style={{ marginTop:10, display:'flex', flexDirection:'column', gap:5, maxHeight:320, overflowY:'auto' }}>
-              {searchResults.length === 0
-                ? <div style={{ color:'#555', fontSize:13, paddingTop:8 }}>Ingen resultater for &quot;{searchQuery}&quot;</div>
-                : searchResults.map(c => {
-                    const { PRIORITY_CONFIG } = require('@/lib/constants')
-                    const p = PRIORITY_CONFIG[c.priority] ?? PRIORITY_CONFIG.medium
-                    return (
-                      <div key={c.id} className="search-result"
-                        style={{ background:'#1e1e2a', borderRadius:10, padding:'10px 14px', display:'flex', alignItems:'center', gap:12, border:'1px solid #2a2a38' }}>
-                        <div style={{ width:3, height:34, borderRadius:2, background:c.color, flexShrink:0 }} />
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:13, fontWeight:600, color: c.done?'#555':'#e8e8f0', textDecoration: c.done?'line-through':'none' }}>{c.title}</div>
-                          {c.desc && <div style={{ fontSize:11, color:'#555', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.desc}</div>}
-                        </div>
-                        <div style={{ display:'flex', gap:6, alignItems:'center', flexShrink:0 }}>
-                          <span style={{ fontSize:10, background:p.bg, color:p.color, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{p.icon} {p.label}</span>
-                          <span style={{ fontSize:11, color:'#555' }}>{c.boardEmoji} {c.boardName} · {c.listName}</span>
-                          {c.done && <span style={{ fontSize:10, background:'rgba(107,203,119,.13)', color:'#6BCB77', borderRadius:20, padding:'2px 7px' }}>✓ Færdig</span>}
-                        </div>
-                      </div>
-                    )
-                  })
-              }
-            </div>
-          )}
-        </div>
-      )}
-
       <main style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-        {activeTab === 'board' && !searchOpen && activeBoard && (
+        {activeTab === 'board' && activeBoard && (
           <BoardView board={activeBoard} onUpdate={updateBoard} />
         )}
-        {activeTab === 'planner' && !searchOpen && (
+        {activeTab === 'planner' && (
           <PlannerView events={eventsState} onUpdate={setEventsState} />
         )}
-        {activeTab === 'overview' && !searchOpen && (
+        {activeTab === 'overview' && (
           <OverviewTodayWeek boards={boards} events={eventsState} />
         )}
       </main>

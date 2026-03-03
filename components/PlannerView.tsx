@@ -60,20 +60,28 @@ export default function PlannerView({ events, onUpdate }: Props) {
         <div className="planner-grid" style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
           {cells.map((d, i) => {
             if (!d) return <div key={`e-${i}`} />
-            const k    = calKey(year, month, d)
-            const evts = events[k] || []
-            const isSel = selectedDay === d
-            const itd   = isToday(d)
+            const k      = calKey(year, month, d)
+            const evts   = events[k] || []
+            const isSel  = selectedDay === d
+            const isTod  = isToday(d)
+            const labelColor = isSel ? '#ffffff' : isTod ? '#8b85ff' : '#bbb'
+            const labelWeight = isTod || isSel ? 700 : 400
             return (
-              <div key={d} className="cal-day"
+              <div
+                key={d}
+                className="cal-day"
                 onClick={() => setSelectedDay(isSel ? null : d)}
                 style={{
-                  background: isSel ? 'rgba(108,99,255,.28)' : itd ? 'rgba(108,99,255,.1)' : '#1a1a24',
-                  border: isSel ? '1px solid #6C63FF' : itd ? '1px solid rgba(108,99,255,.4)' : '1px solid #22222e',
-                  borderRadius:10, padding:'7px 6px', minHeight:76, display:'flex', flexDirection:'column',
+                  background: isSel ? 'rgba(108,99,255,.28)' : '#1a1a24',
+                  border: isSel ? '1px solid #6C63FF' : '1px solid #22222e',
+                  borderRadius: 10,
+                  padding: '7px 6px',
+                  minHeight: 76,
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <span style={{ fontSize:13, fontWeight:itd?700:400, color:itd?'#8b85ff':'#bbb', marginBottom:3 }}>{d}</span>
+                <span style={{ fontSize:13, fontWeight:labelWeight, color:labelColor, marginBottom:3 }}>{d}</span>
                 <div style={{ display:'flex', flexDirection:'column', gap:2, flex:1 }}>
                   {evts.slice(0, 3).map((ev, ei) => (
                     <div key={ei} style={{ fontSize:9, background:'rgba(108,99,255,.2)', borderRadius:3, padding:'2px 5px', color:'#b8b4ff', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev}</div>

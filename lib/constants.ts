@@ -41,7 +41,12 @@ const OWNER_COLOR_PALETTE = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF','
 
 export function ownerColor(owner: string | undefined) {
   if (!owner) return '#1e1e2a'
-  const up = owner.toUpperCase()
+  const up = owner.trim().toUpperCase()
+
+  // Faste farver til bestemte personer
+  if (up === 'F') return '#4D96FF'      // blå til F
+  if (up === 'CM & F') return '#6C63FF' // lilla til "CM & F"
+
   let hash = 0
   for (let i = 0; i < up.length; i++) {
     hash = (hash * 31 + up.charCodeAt(i)) >>> 0

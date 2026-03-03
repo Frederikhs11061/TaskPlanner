@@ -36,6 +36,12 @@ export default function BoardView({ board, onUpdate }: Props) {
     updateLists(b => ({ ...b, lists: b.lists.filter(l => l.id !== listId) }))
   }
 
+  function renameList(listId: string, title: string) {
+    const trimmed = title.trim()
+    if (!trimmed) return
+    updateLists(b => ({ ...b, lists: b.lists.map(l => l.id !== listId ? l : { ...l, title: trimmed }) }))
+  }
+
   function addList() {
     if (!listTitle.trim()) return
     updateLists(b => ({ ...b, lists: [...b.lists, { id: uid(), title: listTitle.trim(), cards: [] }] }))
@@ -67,12 +73,23 @@ export default function BoardView({ board, onUpdate }: Props) {
 
   function onDrop(toListId: string) {
     if (!dragState || dragState.fromListId === toListId) return
-    let card: Card | undefined
-    updateLists(b => ({ ...b, lists: b.lists.map(l => {
-      if (l.id === dragState.fromListId) { card = l.cards.find(c => c.id === dragState.cardId); return { ...l, cards: l.cards.filter(c => c.id !== dragState.cardId) } }
-      if (l.id === toListId) return { ...l, cards: [...l.cards, card!] }
-      return l
-    })}))
+    updateLists(b => {
+      const fromList = b.lists.find(l => l.id === dragState.fromListId)
+      const card = fromList?.cards.find(c => c.id === dragState.cardId)
+      if (!card) return b
+      return {
+        ...b,
+        lists: b.lists.map(l => {
+          if (l.id === dragState.fromListId) {
+            return { ...l, cards: l.cards.filter(c => c.id !== dragState.cardId) }
+          }
+          if (l.id === toListId) {
+            return { ...l, cards: [...l.cards, card] }
+          }
+          return l
+        }),
+      }
+    })
     setDragState(null)
   }
 
@@ -89,6 +106,7 @@ export default function BoardView({ board, onUpdate }: Props) {
           onEditCard={openEdit}
           onDragStart={(cardId, fromListId) => setDragState({ cardId, fromListId })}
           onDrop={onDrop}
+          onRenameList={renameList}
         />
       ))}
 

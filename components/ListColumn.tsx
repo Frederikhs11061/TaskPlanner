@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { List, Card, Priority } from '@/lib/types'
 import CardItem from './CardItem'
 import AddCardForm from './AddCardForm'
@@ -14,12 +14,26 @@ interface Props {
   onEditCard: (card: Card, listId: string) => void
   onDragStart: (cardId: string, fromListId: string) => void
   onDrop: (toListId: string) => void
+  onRenameList: (listId: string, title: string) => void
 }
 
-export default function ListColumn({ list, onAddCard, onDeleteCard, onToggleCard, onDeleteList, onEditCard, onDragStart, onDrop }: Props) {
+export default function ListColumn({ list, onAddCard, onDeleteCard, onToggleCard, onDeleteList, onEditCard, onDragStart, onDrop, onRenameList }: Props) {
   const [isAdding, setIsAdding]   = useState(false)
   const [isDragOver, setDragOver] = useState(false)
+  const [renaming, setRenaming]   = useState(false)
+  const [titleDraft, setTitleDraft] = useState(list.title)
   const doneCount = list.cards.filter(c => c.done).length
+
+  useEffect(() => {
+    setTitleDraft(list.title)
+  }, [list.title])
+
+  function saveRename() {
+    const next = titleDraft.trim()
+    if (!next) { setRenaming(false); setTitleDraft(list.title); return }
+    onRenameList(list.id, next)
+    setRenaming(false)
+  }
 
   return (
     <div
@@ -32,7 +46,23 @@ export default function ListColumn({ list, onAddCard, onDeleteCard, onToggleCard
       {/* Header */}
       <div style={{ padding:'12px 13px 10px', borderBottom:'1px solid #2a2a38', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-          <span style={{ fontWeight:700, fontSize:13 }}>{list.title}</span>
+          {renaming ? (
+            <input
+              value={titleDraft}
+              onChange={e => setTitleDraft(e.target.value)}
+              onBlur={saveRename}
+              onKeyDown={e => { if (e.key === 'Enter') saveRename(); if (e.key === 'Escape') { setRenaming(false); setTitleDraft(list.title) } }}
+              style={{ background:'#2a2a38', border:'1px solid #3a3a50', borderRadius:6, padding:'3px 6px', color:'#f0f0f5', fontSize:13, minWidth:80 }}
+              autoFocus
+            />
+          ) : (
+            <span
+              style={{ fontWeight:700, fontSize:13, cursor:'text' }}
+              onDoubleClick={() => setRenaming(true)}
+            >
+              {list.title}
+            </span>
+          )}
           <span style={{ background:'#2a2a38', borderRadius:20, padding:'1px 8px', fontSize:11, color:'#666' }}>{list.cards.length}</span>
           {doneCount > 0 && (
             <span style={{ background:'rgba(107,203,119,.12)', color:'#6BCB77', borderRadius:20, padding:'1px 8px', fontSize:11 }}>

@@ -1,14 +1,15 @@
 'use client'
-import { useState } from 'react'
-import { Board } from '@/lib/types'
+import { useState, useEffect, useRef } from 'react'
+import { Board, CalendarEvents } from '@/lib/types'
 import { useLocalStorage } from '@/lib/useLocalStorage'
-import { DEFAULT_BOARDS, CARD_COLORS, uid } from '@/lib/constants'
+import { DEFAULT_BOARDS, DEFAULT_EVENTS, CARD_COLORS, uid } from '@/lib/constants'
+import { supabase } from '@/lib/supabaseClient'
 import BoardView from '@/components/BoardView'
 import PlannerView from '@/components/PlannerView'
 
 export default function Home() {
-  const [boards, setBoards, boardsLoaded] = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
-  const [eventsState, setEventsState]     = useLocalStorage('taskflow-events', {})
+  const [boards, setBoards, boardsLoaded]           = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
+  const [eventsState, setEventsState, eventsLoaded] = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
 
   const [activeId, setActiveId]       = useState<string>('board-1')
   const [activeTab, setActiveTab]     = useState<'board' | 'planner'>('board')
@@ -19,6 +20,68 @@ export default function Home() {
   const [newEmoji, setNewEmoji]       = useState('📋')
 
   const activeBoard = boards.find(b => b.id === activeId)
+
+  // Flag til at undgå at første sync overskriver Supabase-data
+  const initialRemoteSynced = useRef(false)
+
+  // Hent data fra Supabase én gang når localStorage er klar
+  useEffect(() => {
+    if (!boardsLoaded || !eventsLoaded) return
+    if (!supabase) return
+    ;(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('taskflow_state')
+          .select('boards, events')
+          .eq('id', 'singleton')
+          .maybeSingle()
+
+        if (error) {
+          console.error('Error loading state from Supabase', error)
+          return
+        }
+
+        if (!data) {
+          // Ingen række endnu – opret én med nuværende state
+          await supabase.from('taskflow_state').upsert({
+            id: 'singleton',
+            boards: boards,
+            events: eventsState,
+          })
+          return
+        }
+
+        if (data.boards) setBoards(data.boards as Board[])
+        if (data.events) setEventsState(data.events as CalendarEvents)
+      } catch (err) {
+        console.error('Unexpected error loading state from Supabase', err)
+      }
+    })()
+  }, [boardsLoaded, eventsLoaded, setBoards, setEventsState])
+
+  // Sync ændringer til Supabase (efter første load)
+  useEffect(() => {
+    if (!boardsLoaded || !eventsLoaded) return
+    if (!supabase) return
+    if (!initialRemoteSynced.current) {
+      initialRemoteSynced.current = true
+      return
+    }
+    ;(async () => {
+      try {
+        const { error } = await supabase.from('taskflow_state').upsert({
+          id: 'singleton',
+          boards,
+          events: eventsState,
+        })
+        if (error) {
+          console.error('Error saving state to Supabase', error)
+        }
+      } catch (err) {
+        console.error('Unexpected error saving state to Supabase', err)
+      }
+    })()
+  }, [boards, eventsState, boardsLoaded, eventsLoaded])
 
   function updateBoard(updated: Board) {
     setBoards(boards.map(b => b.id === updated.id ? updated : b))

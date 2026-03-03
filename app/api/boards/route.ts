@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
+import Redis from 'ioredis'
 import type { Board } from '@/lib/types'
 import { DEFAULT_BOARDS } from '@/lib/constants'
 
 const BOARDS_KEY = 'taskflow:boards'
 
 let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
+if (process.env.REDIS_URL) {
+  redis = new Redis(process.env.REDIS_URL)
 }
 
 function redisAvailable() {
@@ -24,8 +21,9 @@ export async function GET() {
       return NextResponse.json({ boards: null })
     }
 
-    const boards = await redis!.get<Board[]>(BOARDS_KEY)
-    return NextResponse.json({ boards: boards ?? DEFAULT_BOARDS })
+    const data = await redis!.get(BOARDS_KEY)
+    const boards = data ? (JSON.parse(data) as Board[]) : DEFAULT_BOARDS
+    return NextResponse.json({ boards })
   } catch (err) {
     console.error('Error fetching boards from Redis', err)
     return NextResponse.json({ boards: null }, { status: 500 })
@@ -44,7 +42,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ ok: false, reason: 'missing-boards' }, { status: 400 })
     }
 
-    await redis!.set(BOARDS_KEY, boards)
+    await redis!.set(BOARDS_KEY, JSON.stringify(boards))
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('Error saving boards to Redis', err)

@@ -1,14 +1,15 @@
 'use client'
 import { useState } from 'react'
 import { CalendarEvents } from '@/lib/types'
-import { DAYS, MONTHS, getDaysInMonth, getFirstDay, calKey } from '@/lib/constants'
+import { DAYS, MONTHS, getDaysInMonth, getFirstDay, calKey, ownerColor } from '@/lib/constants'
 
 interface Props {
   events: CalendarEvents
   onUpdate: (events: CalendarEvents) => void
+  ownerFilter: string | null
 }
 
-export default function PlannerView({ events, onUpdate }: Props) {
+export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
   const today = new Date()
   const [year, setYear]   = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -54,8 +55,13 @@ export default function PlannerView({ events, onUpdate }: Props) {
     }
     const owner = raw.slice(0, sepIndex).trim()
     const text = raw.slice(sepIndex + 2).trim()
-    const initial = owner ? owner.charAt(0).toUpperCase() : ''
+    const initial = owner ? owner.toUpperCase() : ''
     return { owner, initial, text: text || raw }
+  }
+
+  const ownerMatches = (owner: string) => {
+    if (!ownerFilter) return true
+    return owner.toLowerCase() === ownerFilter.toLowerCase()
   }
 
   return (
@@ -76,7 +82,11 @@ export default function PlannerView({ events, onUpdate }: Props) {
           {cells.map((d, i) => {
             if (!d) return <div key={`e-${i}`} />
             const k      = calKey(year, month, d)
-            const evts   = events[k] || []
+            const allEvts   = events[k] || []
+            const evts = allEvts.filter(ev => {
+              const parsed = parseEvent(ev)
+              return ownerMatches(parsed.owner)
+            })
             const isSel  = selectedDay === d
             const isTod  = isToday(d)
             const labelColor = isSel ? '#ffffff' : isTod ? '#8b85ff' : '#bbb'
@@ -100,6 +110,7 @@ export default function PlannerView({ events, onUpdate }: Props) {
                 <div style={{ display:'flex', flexDirection:'column', gap:2, flex:1 }}>
                   {evts.slice(0, 3).map((ev, ei) => {
                     const parsed = parseEvent(ev)
+                    const bg = ownerColor(parsed.owner)
                     return (
                       <div
                         key={ei}
@@ -119,7 +130,7 @@ export default function PlannerView({ events, onUpdate }: Props) {
                         }}
                       >
                         {parsed.initial && (
-                          <span style={{ fontWeight:700 }}>{parsed.initial}</span>
+                          <span style={{ fontWeight:700, background:bg, color:'#0f0f13', borderRadius:10, padding:'0 4px' }}>{parsed.initial}</span>
                         )}
                         <span>{parsed.text}</span>
                       </div>
@@ -146,6 +157,7 @@ export default function PlannerView({ events, onUpdate }: Props) {
                 ? <div style={{ color:'#444', fontSize:13, textAlign:'center', padding:'10px 0' }}>Ingen begivenheder</div>
                 : selectedEvents.map((ev, i) => {
                   const parsed = parseEvent(ev)
+                  if (!ownerMatches(parsed.owner)) return null
                   return (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#22222e', borderRadius:8, padding:'8px 11px', marginBottom:6 }}>
                       <span style={{ fontSize:13 }}>
@@ -191,12 +203,22 @@ export default function PlannerView({ events, onUpdate }: Props) {
             ? <div style={{ color:'#444', fontSize:13 }}>Ingen begivenheder endnu</div>
             : monthEvents.flatMap(([k, evts]) => {
                 const day = k.split('-')[2]
-                return evts.map((ev, i) => (
-                  <div key={`${k}-${i}`} style={{ display:'flex', gap:9, alignItems:'center', marginBottom:8 }}>
-                    <div style={{ background:'rgba(108,99,255,.18)', borderRadius:6, padding:'3px 8px', fontSize:11, color:'#9d97ff', fontWeight:700, flexShrink:0, minWidth:28, textAlign:'center' }}>{day}</div>
-                    <div style={{ fontSize:13, color:'#ccc', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev}</div>
-                  </div>
-                ))
+                return evts.map((ev, i) => {
+                  const parsed = parseEvent(ev)
+                  if (!ownerMatches(parsed.owner)) return null
+                  const bg = ownerColor(parsed.owner)
+                  return (
+                    <div key={`${k}-${i}`} style={{ display:'flex', gap:9, alignItems:'center', marginBottom:8 }}>
+                      <div style={{ background:'rgba(108,99,255,.18)', borderRadius:6, padding:'3px 8px', fontSize:11, color:'#9d97ff', fontWeight:700, flexShrink:0, minWidth:28, textAlign:'center' }}>{day}</div>
+                      <div style={{ fontSize:13, color:'#ccc', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6 }}>
+                        {parsed.initial && (
+                          <span style={{ fontSize:11, background:bg, color:'#0f0f13', borderRadius:10, padding:'1px 6px', fontWeight:700 }}>{parsed.initial}</span>
+                        )}
+                        <span>{parsed.text}</span>
+                      </div>
+                    </div>
+                  )
+                })
               })
           }
         </div>

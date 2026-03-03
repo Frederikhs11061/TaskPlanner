@@ -36,3 +36,15 @@ export const DEFAULT_BOARDS: Board[] = [
 ]
 
 export const DEFAULT_EVENTS: CalendarEvents = {}
+
+const OWNER_COLOR_PALETTE = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#C77DFF','#FF9F45']
+
+export function ownerColor(owner: string | undefined) {
+  if (!owner) return '#1e1e2a'
+  const up = owner.toUpperCase()
+  let hash = 0
+  for (let i = 0; i < up.length; i++) {
+    hash = (hash * 31 + up.charCodeAt(i)) >>> 0
+  }
+  return OWNER_COLOR_PALETTE[hash % OWNER_COLOR_PALETTE.length]
+}

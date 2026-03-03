@@ -6,18 +6,20 @@ import { DEFAULT_BOARDS, DEFAULT_EVENTS, CARD_COLORS, uid } from '@/lib/constant
 import { supabase } from '@/lib/supabaseClient'
 import BoardView from '@/components/BoardView'
 import PlannerView from '@/components/PlannerView'
+import OverviewTodayWeek from '@/components/OverviewTodayWeek'
 
 export default function Home() {
   const [boards, setBoards, boardsLoaded]           = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
   const [eventsState, setEventsState, eventsLoaded] = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
 
   const [activeId, setActiveId]       = useState<string>('board-1')
-  const [activeTab, setActiveTab]     = useState<'board' | 'planner'>('board')
+  const [activeTab, setActiveTab]     = useState<'board' | 'planner' | 'overview'>('board')
   const [searchOpen, setSearchOpen]   = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [addingBoard, setAddingBoard] = useState(false)
   const [newName, setNewName]         = useState('')
   const [newEmoji, setNewEmoji]       = useState('📋')
+  const [ownerFilter, setOwnerFilter] = useState<string | null>(null)
 
   const activeBoard = boards.find(b => b.id === activeId)
 
@@ -126,6 +128,18 @@ export default function Home() {
 
   if (!boardsLoaded) return null
 
+  // Ejere til filter (samlet fra tasks + events)
+  const ownerSet = new Set<string>()
+  boards.forEach(b => b.lists.forEach(l => l.cards.forEach(c => { if (c.owner) ownerSet.add(c.owner) })))
+  Object.values(eventsState).forEach(arr => arr.forEach(raw => {
+    const sep = raw.indexOf('::')
+    if (sep > 0) {
+      const owner = raw.slice(0, sep).trim()
+      if (owner) ownerSet.add(owner)
+    }
+  }))
+  const ownerOptions = Array.from(ownerSet).sort((a, b) => a.localeCompare(b, 'da'))
+
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#0f0f13', color:'#f0f0f5' }}>
       <header className="top-bar" style={{ background:'#16161f', borderBottom:'1px solid #2a2a38', padding:'0 18px', display:'flex', alignItems:'center', gap:12, height:52, flexShrink:0, zIndex:50 }}>
@@ -175,6 +189,34 @@ export default function Home() {
         </nav>
 
         <div className="top-bar-actions" style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {/* Person filter */}
+          <div style={{ display:'flex', gap:4, background:'#1e1e2a', borderRadius:10, padding:3 }}>
+            <button
+              onClick={() => setOwnerFilter(null)}
+              style={{
+                background: ownerFilter === null ? '#6C63FF' : 'transparent',
+                border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
+                color: ownerFilter === null ? '#fff' : '#888', fontWeight:600,
+              }}
+            >
+              Alle
+            </button>
+            {ownerOptions.map(o => (
+              <button
+                key={o}
+                onClick={() => setOwnerFilter(o)}
+                style={{
+                  background: ownerFilter === o ? '#6C63FF' : 'transparent',
+                  border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
+                  color: ownerFilter === o ? '#fff' : '#888', fontWeight:600,
+                }}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+
+          {/* Search */}
           <button
             onClick={() => { setSearchOpen(s => !s); setSearchQuery('') }}
             style={{
@@ -187,15 +229,20 @@ export default function Home() {
             🔍 <span style={{ fontSize:12, fontWeight:500 }}>Søg</span>
           </button>
 
+          {/* Tab switcher */}
           <div style={{ display:'flex', background:'#1e1e2a', borderRadius:10, padding:3, gap:2, flexShrink:0 }}>
-            {(['board', 'planner'] as const).map(t => (
-              <button key={t} onClick={() => { setActiveTab(t); setSearchOpen(false) }}
+            {([
+              { id: 'board' as const, label: '🗂 Tavle' },
+              { id: 'planner' as const, label: '📅 Planner' },
+              { id: 'overview' as const, label: '⭐ I dag / uge' },
+            ]).map(t => (
+              <button key={t.id} onClick={() => { setActiveTab(t.id); setSearchOpen(false) }}
                 style={{
-                  background: activeTab === t && !searchOpen ? '#6C63FF' : 'transparent',
+                  background: activeTab === t.id && !searchOpen ? '#6C63FF' : 'transparent',
                   border:'none', borderRadius:7, padding:'5px 13px', cursor:'pointer', fontSize:12, fontWeight:600,
-                  color: activeTab === t && !searchOpen ? '#fff' : '#888',
+                  color: activeTab === t.id && !searchOpen ? '#fff' : '#888',
                 }}>
-                {t === 'board' ? '🗂 Tavle' : '📅 Planner'}
+                {t.label}
               </button>
             ))}
           </div>
@@ -245,10 +292,12 @@ export default function Home() {
           <BoardView board={activeBoard} onUpdate={updateBoard} />
         )}
         {activeTab === 'planner' && !searchOpen && (
-          <PlannerView events={eventsState} onUpdate={setEventsState} />
+          <PlannerView events={eventsState} onUpdate={setEventsState} ownerFilter={ownerFilter} />
+        )}
+        {activeTab === 'overview' && !searchOpen && (
+          <OverviewTodayWeek boards={boards} events={eventsState} ownerFilter={ownerFilter} />
         )}
       </main>
     </div>
   )
 }
-

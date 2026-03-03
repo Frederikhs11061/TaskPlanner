@@ -1,6 +1,6 @@
 'use client'
 import { Card } from '@/lib/types'
-import { PRIORITY_CONFIG } from '@/lib/constants'
+import { PRIORITY_CONFIG, ownerColor } from '@/lib/constants'
 
 interface Props {
   card: Card
@@ -34,6 +34,7 @@ function renderDesc(text: string) {
 
 export default function CardItem({ card, onToggle, onDelete, onEdit, onDragStart }: Props) {
   const p = PRIORITY_CONFIG[card.priority] ?? PRIORITY_CONFIG.medium
+  const ownerBg = ownerColor(card.owner)
 
   return (
     <div
@@ -90,7 +91,14 @@ export default function CardItem({ card, onToggle, onDelete, onEdit, onDragStart
               <span style={{ fontSize:10, color:'#666' }}>📅 {card.due}</span>
             )}
             {card.owner && (
-              <span style={{ fontSize:10, background:'#1e1e2a', color:'#bbb', borderRadius:20, padding:'2px 7px' }}>
+              <span style={{
+                fontSize:10,
+                background:ownerBg,
+                color:'#0f0f13',
+                borderRadius:20,
+                padding:'2px 7px',
+                fontWeight:700,
+              }}>
                 {card.owner}
               </span>
             )}

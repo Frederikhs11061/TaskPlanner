@@ -110,12 +110,16 @@ export default function Home() {
     if (activeId === id) setActiveId(nb[0]?.id ?? '')
   }
 
-  const searchResults = searchQuery.trim().length > 1
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const hasQuery = normalizedQuery.length > 0
+
+  const searchResults = hasQuery
     ? boards.flatMap(b => b.lists.flatMap(l => l.cards
-        .filter(c =>
-          c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.desc.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        .filter(c => {
+          const title = c.title.toLowerCase()
+          const desc  = (c.desc || '').toLowerCase()
+          return title.includes(normalizedQuery) || desc.includes(normalizedQuery)
+        })
         .map(c => ({ ...c, boardName: b.name, boardEmoji: b.emoji, listName: l.title }))
       ))
     : []

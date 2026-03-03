@@ -99,8 +99,9 @@ input, textarea, button { font-family: inherit; outline: none; }
   }
 
   .cal-day {
-    min-height: 64px !important;
+    height: 72px !important;
     padding: 6px 4px !important;
+    overflow: hidden;
   }
 
   .planner-selected-card {

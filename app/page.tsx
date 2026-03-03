@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Board, CalendarEvents } from '@/lib/types'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { DEFAULT_BOARDS, DEFAULT_EVENTS, CARD_COLORS, uid } from '@/lib/constants'
@@ -7,8 +7,8 @@ import BoardView from '@/components/BoardView'
 import PlannerView from '@/components/PlannerView'
 
 export default function Home() {
-  const [boards, setBoards, boardsLoaded] = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
-  const [eventsState, setEventsState]     = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
+  const [boards, setBoards, boardsLoaded]           = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
+  const [eventsState, setEventsState, eventsLoaded] = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
   const [activeId, setActiveId]           = useState<string>('board-1')
   const [activeTab, setActiveTab]         = useState<'board' | 'planner'>('board')
   const [searchOpen, setSearchOpen]       = useState(false)
@@ -18,6 +18,66 @@ export default function Home() {
   const [newEmoji, setNewEmoji]           = useState('📋')
 
   const activeBoard = boards.find(b => b.id === activeId)
+
+  // Load initial data from backend once local state is ready
+  useEffect(() => {
+    if (!boardsLoaded) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/boards')
+        if (!res.ok) return
+        const data = await res.json()
+        if (data?.boards) setBoards(data.boards as Board[])
+      } catch {
+        // ignore – falls back til localStorage
+      }
+    })()
+  }, [boardsLoaded, setBoards])
+
+  useEffect(() => {
+    if (!eventsLoaded) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/events')
+        if (!res.ok) return
+        const data = await res.json()
+        if (data?.events) setEventsState(data.events as CalendarEvents)
+      } catch {
+        // ignore – falls back til localStorage
+      }
+    })()
+  }, [eventsLoaded, setEventsState])
+
+  // Sync changes to backend so data er delt mellem enheder
+  useEffect(() => {
+    if (!boardsLoaded) return
+    ;(async () => {
+      try {
+        await fetch('/api/boards', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ boards }),
+        })
+      } catch {
+        // ignore network errors
+      }
+    })()
+  }, [boards, boardsLoaded])
+
+  useEffect(() => {
+    if (!eventsLoaded) return
+    ;(async () => {
+      try {
+        await fetch('/api/events', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ events: eventsState }),
+        })
+      } catch {
+        // ignore network errors
+      }
+    })()
+  }, [eventsState, eventsLoaded])
 
   function updateBoard(updated: Board) {
     setBoards(boards.map(b => b.id === updated.id ? updated : b))
@@ -63,15 +123,15 @@ export default function Home() {
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#0f0f13', color:'#f0f0f5' }}>
 
       {/* TOP BAR */}
-      <header style={{ background:'#16161f', borderBottom:'1px solid #2a2a38', padding:'0 18px', display:'flex', alignItems:'center', gap:12, height:52, flexShrink:0, zIndex:50 }}>
+      <header className="top-bar" style={{ background:'#16161f', borderBottom:'1px solid #2a2a38', padding:'0 18px', display:'flex', alignItems:'center', gap:12, height:52, flexShrink:0, zIndex:50 }}>
         {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:7, marginRight:6, flexShrink:0 }}>
           <div style={{ width:28, height:28, borderRadius:8, background:'linear-gradient(135deg,#6C63FF,#C77DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>⚡</div>
-          <span style={{ fontFamily:"'Space Grotesk'", fontWeight:700, fontSize:15, letterSpacing:'-0.3px' }}>TaskFlow</span>
+          <span className="top-bar-title" style={{ fontFamily:"'Space Grotesk'", fontWeight:700, fontSize:15, letterSpacing:'-0.3px' }}>TaskFlow</span>
         </div>
 
         {/* Board tabs */}
-        <nav style={{ display:'flex', gap:3, flex:1, overflowX:'auto', alignItems:'center', minWidth:0 }}>
+        <nav className="top-bar-tabs" style={{ display:'flex', gap:3, flex:1, overflowX:'auto', alignItems:'center', minWidth:0 }}>
           {boards.map(b => (
             <div
               key={b.id}
@@ -111,31 +171,33 @@ export default function Home() {
           )}
         </nav>
 
-        {/* Search */}
-        <button
-          onClick={() => { setSearchOpen(s => !s); setSearchQuery('') }}
-          style={{
-            background: searchOpen ? 'rgba(108,99,255,.25)' : '#1e1e2a',
-            border: searchOpen ? '1px solid rgba(108,99,255,.5)' : '1px solid #2a2a38',
-            borderRadius:9, color: searchOpen ? '#b8b4ff' : '#888',
-            padding:'6px 13px', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', gap:6, flexShrink:0,
-          }}
-        >
-          🔍 <span style={{ fontSize:12, fontWeight:500 }}>Søg</span>
-        </button>
+        <div className="top-bar-actions" style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          {/* Search */}
+          <button
+            onClick={() => { setSearchOpen(s => !s); setSearchQuery('') }}
+            style={{
+              background: searchOpen ? 'rgba(108,99,255,.25)' : '#1e1e2a',
+              border: searchOpen ? '1px solid rgba(108,99,255,.5)' : '1px solid #2a2a38',
+              borderRadius:9, color: searchOpen ? '#b8b4ff' : '#888',
+              padding:'6px 13px', cursor:'pointer', fontSize:13, display:'flex', alignItems:'center', gap:6, flexShrink:0,
+            }}
+          >
+            🔍 <span style={{ fontSize:12, fontWeight:500 }}>Søg</span>
+          </button>
 
-        {/* Tab switcher */}
-        <div style={{ display:'flex', background:'#1e1e2a', borderRadius:10, padding:3, gap:2, flexShrink:0 }}>
-          {(['board', 'planner'] as const).map(t => (
-            <button key={t} onClick={() => { setActiveTab(t); setSearchOpen(false) }}
-              style={{
-                background: activeTab === t && !searchOpen ? '#6C63FF' : 'transparent',
-                border:'none', borderRadius:7, padding:'5px 13px', cursor:'pointer', fontSize:12, fontWeight:600,
-                color: activeTab === t && !searchOpen ? '#fff' : '#888',
-              }}>
-              {t === 'board' ? '🗂 Tavle' : '📅 Planner'}
-            </button>
-          ))}
+          {/* Tab switcher */}
+          <div style={{ display:'flex', background:'#1e1e2a', borderRadius:10, padding:3, gap:2, flexShrink:0 }}>
+            {(['board', 'planner'] as const).map(t => (
+              <button key={t} onClick={() => { setActiveTab(t); setSearchOpen(false) }}
+                style={{
+                  background: activeTab === t && !searchOpen ? '#6C63FF' : 'transparent',
+                  border:'none', borderRadius:7, padding:'5px 13px', cursor:'pointer', fontSize:12, fontWeight:600,
+                  color: activeTab === t && !searchOpen ? '#fff' : '#888',
+                }}>
+                {t === 'board' ? '🗂 Tavle' : '📅 Planner'}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 

@@ -44,9 +44,9 @@ export default function PlannerView({ events, onUpdate }: Props) {
   const selectedEvents = selectedKey ? (events[selectedKey] || []) : []
 
   return (
-    <div style={{ flex:1, overflow:'auto', padding:22, display:'flex', gap:18 }}>
+    <div className="planner-root" style={{ flex:1, overflow:'auto', padding:22, display:'flex', gap:18 }}>
       {/* Calendar grid */}
-      <div style={{ flex:1, minWidth:0 }}>
+      <div className="planner-main" style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
           <button onClick={prevMonth} style={{ background:'#1e1e2a', border:'1px solid #2a2a38', borderRadius:8, color:'#ccc', padding:'6px 13px', cursor:'pointer', fontSize:17 }}>‹</button>
           <h2 style={{ fontFamily:"'Space Grotesk'", fontSize:22, fontWeight:700, flex:1 }}>{MONTHS[month]} {year}</h2>
@@ -87,7 +87,7 @@ export default function PlannerView({ events, onUpdate }: Props) {
       </div>
 
       {/* Side panel */}
-      <div style={{ width:296, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
+      <div className="planner-side" style={{ width:296, maxWidth:'100%', flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
         {selectedDay ? (
           <div style={{ background:'#1a1a24', borderRadius:14, border:'1px solid #2a2a38', overflow:'hidden' }}>
             <div style={{ background:'linear-gradient(135deg,rgba(108,99,255,.28),rgba(199,125,255,.15))', padding:'14px 16px', borderBottom:'1px solid #2a2a38' }}>

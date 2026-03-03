@@ -5,7 +5,6 @@ import { MONTHS, ownerColor } from '@/lib/constants'
 interface Props {
   boards: Board[]
   events: CalendarEvents
-  ownerFilter: string | null
 }
 
 interface EventItem {
@@ -56,20 +55,14 @@ function ownerChip(owner: string | undefined) {
   )
 }
 
-export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props) {
+export default function OverviewTodayWeek({ boards, events }: Props) {
   const today = new Date()
   today.setHours(0,0,0,0)
-
-  const ownerMatches = (owner: string | undefined) => {
-    if (!ownerFilter) return true
-    return (owner || '').toLowerCase() === ownerFilter.toLowerCase()
-  }
 
   const allCards: { card: Card; boardName: string; listName: string }[] = []
   boards.forEach(b => {
     b.lists.forEach(l => {
       l.cards.forEach(c => {
-        if (!ownerMatches(c.owner)) return
         allCards.push({ card: c, boardName: b.name, listName: l.title })
       })
     })
@@ -85,7 +78,6 @@ export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props
     date.setHours(0,0,0,0)
     arr.forEach(raw => {
       const { owner, text } = parseEvent(raw)
-      if (!ownerMatches(owner)) return
       allEvents.push({
         date,
         label: `${d}. ${MONTHS[m - 1]}`,

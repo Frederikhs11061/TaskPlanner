@@ -19,7 +19,6 @@ export default function Home() {
   const [addingBoard, setAddingBoard] = useState(false)
   const [newName, setNewName]         = useState('')
   const [newEmoji, setNewEmoji]       = useState('📋')
-  const [ownerFilter, setOwnerFilter] = useState<string | null>(null)
 
   const activeBoard = boards.find(b => b.id === activeId)
 
@@ -107,6 +106,11 @@ export default function Home() {
   }
 
   function deleteBoard(id: string) {
+    const board = boards.find(b => b.id === id)
+    if (board) {
+      const ok = window.confirm(`Slet tavlen "${board.name}" og alle opgaver?`)
+      if (!ok) return
+    }
     const nb = boards.filter(b => b.id !== id)
     setBoards(nb)
     if (activeId === id) setActiveId(nb[0]?.id ?? '')
@@ -127,20 +131,6 @@ export default function Home() {
     : []
 
   if (!boardsLoaded) return null
-
-  // Ejere til filter (samlet fra tasks + events)
-  const ownerSet = new Set<string>()
-  boards.forEach(b => b.lists.forEach(l => l.cards.forEach(c => { if (c.owner) ownerSet.add(c.owner) })))
-  Object.values(eventsState).forEach(arr => arr.forEach(raw => {
-    const sep = raw.indexOf('::')
-    if (sep > 0) {
-      const owner = raw.slice(0, sep).trim()
-      if (owner) ownerSet.add(owner)
-    }
-  }))
-  const ownerOptions = Array.from(ownerSet).sort((a, b) => a.localeCompare(b, 'da'))
-
-  const showOwnerFilter = activeTab === 'planner' || activeTab === 'overview'
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#0f0f13', color:'#f0f0f5' }}>
@@ -191,35 +181,6 @@ export default function Home() {
         </nav>
 
         <div className="top-bar-actions" style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-          {/* Person filter - kun i kalender/overview */}
-          {showOwnerFilter && (
-            <div style={{ display:'flex', gap:4, background:'#1e1e2a', borderRadius:10, padding:3 }}>
-              <button
-                onClick={() => setOwnerFilter(null)}
-                style={{
-                  background: ownerFilter === null ? '#6C63FF' : 'transparent',
-                  border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
-                  color: ownerFilter === null ? '#fff' : '#888', fontWeight:600,
-                }}
-              >
-                Alle
-              </button>
-              {ownerOptions.map(o => (
-                <button
-                  key={o}
-                  onClick={() => setOwnerFilter(o)}
-                  style={{
-                    background: ownerFilter === o ? '#6C63FF' : 'transparent',
-                    border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
-                    color: ownerFilter === o ? '#fff' : '#888', fontWeight:600,
-                  }}
-                >
-                  {o}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Search */}
           <button
             onClick={() => { setSearchOpen(s => !s); setSearchQuery('') }}
@@ -296,10 +257,10 @@ export default function Home() {
           <BoardView board={activeBoard} onUpdate={updateBoard} />
         )}
         {activeTab === 'planner' && !searchOpen && (
-          <PlannerView events={eventsState} onUpdate={setEventsState} ownerFilter={ownerFilter} />
+          <PlannerView events={eventsState} onUpdate={setEventsState} />
         )}
         {activeTab === 'overview' && !searchOpen && (
-          <OverviewTodayWeek boards={boards} events={eventsState} ownerFilter={ownerFilter} />
+          <OverviewTodayWeek boards={boards} events={eventsState} />
         )}
       </main>
     </div>

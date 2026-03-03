@@ -6,10 +6,9 @@ import { DAYS, MONTHS, getDaysInMonth, getFirstDay, calKey, ownerColor } from '@
 interface Props {
   events: CalendarEvents
   onUpdate: (events: CalendarEvents) => void
-  ownerFilter: string | null
 }
 
-export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
+export default function PlannerView({ events, onUpdate }: Props) {
   const today = new Date()
   const [year, setYear]   = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -59,11 +58,6 @@ export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
     return { owner, initial, text: text || raw }
   }
 
-  const ownerMatches = (owner: string) => {
-    if (!ownerFilter) return true
-    return owner.toLowerCase() === ownerFilter.toLowerCase()
-  }
-
   return (
     <div className="planner-root" style={{ flex:1, overflow:'auto', padding:22, display:'flex', gap:18 }}>
       {/* Calendar grid */}
@@ -82,11 +76,7 @@ export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
           {cells.map((d, i) => {
             if (!d) return <div key={`e-${i}`} />
             const k      = calKey(year, month, d)
-            const allEvts   = events[k] || []
-            const evts = allEvts.filter(ev => {
-              const parsed = parseEvent(ev)
-              return ownerMatches(parsed.owner)
-            })
+            const evts   = events[k] || []
             const isSel  = selectedDay === d
             const isTod  = isToday(d)
             const labelColor = isSel ? '#ffffff' : isTod ? '#8b85ff' : '#bbb'
@@ -157,7 +147,6 @@ export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
                 ? <div style={{ color:'#444', fontSize:13, textAlign:'center', padding:'10px 0' }}>Ingen begivenheder</div>
                 : selectedEvents.map((ev, i) => {
                   const parsed = parseEvent(ev)
-                  if (!ownerMatches(parsed.owner)) return null
                   return (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#22222e', borderRadius:8, padding:'8px 11px', marginBottom:6 }}>
                       <span style={{ fontSize:13 }}>
@@ -205,7 +194,6 @@ export default function PlannerView({ events, onUpdate, ownerFilter }: Props) {
                 const day = k.split('-')[2]
                 return evts.map((ev, i) => {
                   const parsed = parseEvent(ev)
-                  if (!ownerMatches(parsed.owner)) return null
                   const bg = ownerColor(parsed.owner)
                   return (
                     <div key={`${k}-${i}`} style={{ display:'flex', gap:9, alignItems:'center', marginBottom:8 }}>

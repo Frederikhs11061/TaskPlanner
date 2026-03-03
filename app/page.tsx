@@ -140,6 +140,8 @@ export default function Home() {
   }))
   const ownerOptions = Array.from(ownerSet).sort((a, b) => a.localeCompare(b, 'da'))
 
+  const showOwnerFilter = activeTab === 'planner' || activeTab === 'overview'
+
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#0f0f13', color:'#f0f0f5' }}>
       <header className="top-bar" style={{ background:'#16161f', borderBottom:'1px solid #2a2a38', padding:'0 18px', display:'flex', alignItems:'center', gap:12, height:52, flexShrink:0, zIndex:50 }}>
@@ -189,32 +191,34 @@ export default function Home() {
         </nav>
 
         <div className="top-bar-actions" style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-          {/* Person filter */}
-          <div style={{ display:'flex', gap:4, background:'#1e1e2a', borderRadius:10, padding:3 }}>
-            <button
-              onClick={() => setOwnerFilter(null)}
-              style={{
-                background: ownerFilter === null ? '#6C63FF' : 'transparent',
-                border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
-                color: ownerFilter === null ? '#fff' : '#888', fontWeight:600,
-              }}
-            >
-              Alle
-            </button>
-            {ownerOptions.map(o => (
+          {/* Person filter - kun i kalender/overview */}
+          {showOwnerFilter && (
+            <div style={{ display:'flex', gap:4, background:'#1e1e2a', borderRadius:10, padding:3 }}>
               <button
-                key={o}
-                onClick={() => setOwnerFilter(o)}
+                onClick={() => setOwnerFilter(null)}
                 style={{
-                  background: ownerFilter === o ? '#6C63FF' : 'transparent',
+                  background: ownerFilter === null ? '#6C63FF' : 'transparent',
                   border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
-                  color: ownerFilter === o ? '#fff' : '#888', fontWeight:600,
+                  color: ownerFilter === null ? '#fff' : '#888', fontWeight:600,
                 }}
               >
-                {o}
+                Alle
               </button>
-            ))}
-          </div>
+              {ownerOptions.map(o => (
+                <button
+                  key={o}
+                  onClick={() => setOwnerFilter(o)}
+                  style={{
+                    background: ownerFilter === o ? '#6C63FF' : 'transparent',
+                    border:'none', borderRadius:7, padding:'4px 9px', cursor:'pointer', fontSize:11,
+                    color: ownerFilter === o ? '#fff' : '#888', fontWeight:600,
+                  }}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Search */}
           <button
@@ -233,7 +237,7 @@ export default function Home() {
           <div style={{ display:'flex', background:'#1e1e2a', borderRadius:10, padding:3, gap:2, flexShrink:0 }}>
             {([
               { id: 'board' as const, label: '🗂 Tavle' },
-              { id: 'planner' as const, label: '📅 Planner' },
+              { id: 'planner' as const, label: '📅 Kalender' },
               { id: 'overview' as const, label: '⭐ I dag / uge' },
             ]).map(t => (
               <button key={t.id} onClick={() => { setActiveTab(t.id); setSearchOpen(false) }}

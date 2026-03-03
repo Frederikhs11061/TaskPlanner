@@ -1,6 +1,6 @@
 'use client'
 import { Board, CalendarEvents, Card } from '@/lib/types'
-import { calKey, MONTHS } from '@/lib/constants'
+import { MONTHS, ownerColor } from '@/lib/constants'
 
 interface Props {
   boards: Board[]
@@ -33,6 +33,27 @@ function isWithinWeek(target: Date, base: Date) {
   const end = new Date(start)
   end.setDate(end.getDate() + 7)
   return target >= start && target < end
+}
+
+function ownerChip(owner: string | undefined) {
+  if (!owner) return null
+  const bg = ownerColor(owner)
+  const initials = owner.toUpperCase()
+  return (
+    <span style={{
+      minWidth:24,
+      padding:'2px 7px',
+      borderRadius:999,
+      background:bg,
+      color:'#0f0f13',
+      fontSize:11,
+      fontWeight:700,
+      textAlign:'center',
+      display:'inline-block',
+    }}>
+      {initials}
+    </span>
+  )
 }
 
 export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props) {
@@ -88,9 +109,12 @@ export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props
             {todayTasks.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen opgaver i dag</div>
               : todayTasks.map(({ card, boardName, listName }) => (
-                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6 }}>
-                    <span>{card.title}</span>
-                    <span style={{ fontSize:11, color:'#777' }}> · {boardName} / {listName}</span>
+                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(card.owner)}
+                    <div style={{ display:'flex', flexDirection:'column' }}>
+                      <span>{card.title}</span>
+                      <span style={{ fontSize:11, color:'#777' }}>{boardName} / {listName}</span>
+                    </div>
                   </div>
                 ))}
           </div>
@@ -100,9 +124,9 @@ export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props
             {todayEvents.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen begivenheder i dag</div>
               : todayEvents.map((ev, idx) => (
-                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6 }}>
+                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(ev.owner)}
                     <span>{ev.text}</span>
-                    {ev.owner && <span style={{ fontSize:11, color:'#777' }}> · {ev.owner}</span>}
                   </div>
                 ))}
           </div>
@@ -118,9 +142,12 @@ export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props
             {weekTasks.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen opgaver denne uge</div>
               : weekTasks.map(({ card, boardName, listName }) => (
-                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6 }}>
-                    <span>{card.title}</span>
-                    <span style={{ fontSize:11, color:'#777' }}> · {card.due} · {boardName} / {listName}</span>
+                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(card.owner)}
+                    <div style={{ display:'flex', flexDirection:'column' }}>
+                      <span>{card.title}</span>
+                      <span style={{ fontSize:11, color:'#777' }}>{card.due} · {boardName} / {listName}</span>
+                    </div>
                   </div>
                 ))}
           </div>
@@ -130,9 +157,9 @@ export default function OverviewTodayWeek({ boards, events, ownerFilter }: Props
             {weekEvents.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen begivenheder denne uge</div>
               : weekEvents.map((ev, idx) => (
-                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6 }}>
+                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(ev.owner)}
                     <span>{ev.label}: {ev.text}</span>
-                    {ev.owner && <span style={{ fontSize:11, color:'#777' }}> · {ev.owner}</span>}
                   </div>
                 ))}
           </div>

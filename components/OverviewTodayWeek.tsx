@@ -26,11 +26,7 @@ function sameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-function isWithinWeek(target: Date, base: Date) {
-  const start = new Date(base)
-  start.setHours(0,0,0,0)
-  const end = new Date(start)
-  end.setDate(end.getDate() + 7)
+function isWithinRange(target: Date, start: Date, end: Date) {
   return target >= start && target < end
 }
 
@@ -59,6 +55,18 @@ export default function OverviewTodayWeek({ boards, events }: Props) {
   const today = new Date()
   today.setHours(0,0,0,0)
 
+  const startThisWeek = new Date(today)
+  startThisWeek.setHours(0,0,0,0)
+  const endThisWeek = new Date(startThisWeek)
+  endThisWeek.setDate(endThisWeek.getDate() + 7)
+
+  const startNextWeek = new Date(endThisWeek)
+  const endNextWeek = new Date(startNextWeek)
+  endNextWeek.setDate(endNextWeek.getDate() + 7)
+
+  const startNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+  const endNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 1)
+
   const allCards: { card: Card; boardName: string; listName: string }[] = []
   boards.forEach(b => {
     b.lists.forEach(l => {
@@ -69,7 +77,9 @@ export default function OverviewTodayWeek({ boards, events }: Props) {
   })
 
   const todayTasks = allCards.filter(({ card }) => card.due && sameDay(new Date(card.due), today))
-  const weekTasks = allCards.filter(({ card }) => card.due && !sameDay(new Date(card.due), today) && isWithinWeek(new Date(card.due), today))
+  const thisWeekTasks = allCards.filter(({ card }) => card.due && !sameDay(new Date(card.due), today) && isWithinRange(new Date(card.due), startThisWeek, endThisWeek))
+  const nextWeekTasks = allCards.filter(({ card }) => card.due && isWithinRange(new Date(card.due), startNextWeek, endNextWeek))
+  const nextMonthTasks = allCards.filter(({ card }) => card.due && isWithinRange(new Date(card.due), startNextMonth, endNextMonth))
 
   const allEvents: EventItem[] = []
   Object.entries(events).forEach(([key, arr]) => {
@@ -88,14 +98,19 @@ export default function OverviewTodayWeek({ boards, events }: Props) {
   })
 
   const todayEvents = allEvents.filter(e => sameDay(e.date, today))
-  const weekEvents = allEvents.filter(e => !sameDay(e.date, today) && isWithinWeek(e.date, today))
+  const thisWeekEvents = allEvents.filter(e => !sameDay(e.date, today) && isWithinRange(e.date, startThisWeek, endThisWeek))
+  const nextWeekEvents = allEvents.filter(e => isWithinRange(e.date, startNextWeek, endNextWeek))
+  const nextMonthEvents = allEvents.filter(e => isWithinRange(e.date, startNextMonth, endNextMonth))
+
+  const sectionStyle = { background:'#16161f', borderRadius:16, border:'1px solid #2a2a38', padding:16 }
+  const gridStyle = { display:'grid', gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)', gap:14, flexWrap:'wrap' as const }
 
   return (
     <div style={{ flex:1, padding:18, display:'flex', flexDirection:'column', gap:18, overflow:'auto' }}>
-      <section style={{ background:'#16161f', borderRadius:16, border:'1px solid #2a2a38', padding:16 }}>
+      <section style={sectionStyle}>
         <h3 style={{ fontFamily:"'Space Grotesk'", fontSize:18, marginBottom:10 }}>I dag</h3>
 
-        <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)', gap:14, flexWrap:'wrap' }}>
+        <div style={gridStyle}>
           <div>
             <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>OPGAVER</div>
             {todayTasks.length === 0
@@ -125,15 +140,15 @@ export default function OverviewTodayWeek({ boards, events }: Props) {
         </div>
       </section>
 
-      <section style={{ background:'#16161f', borderRadius:16, border:'1px solid #2a2a38', padding:16 }}>
+      <section style={sectionStyle}>
         <h3 style={{ fontFamily:"'Space Grotesk'", fontSize:18, marginBottom:10 }}>Denne uge</h3>
 
-        <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)', gap:14, flexWrap:'wrap' }}>
+        <div style={gridStyle}>
           <div>
             <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>OPGAVER</div>
-            {weekTasks.length === 0
+            {thisWeekTasks.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen opgaver denne uge</div>
-              : weekTasks.map(({ card, boardName, listName }) => (
+              : thisWeekTasks.map(({ card, boardName, listName }) => (
                   <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
                     {ownerChip(card.owner)}
                     <div style={{ display:'flex', flexDirection:'column' }}>
@@ -146,9 +161,75 @@ export default function OverviewTodayWeek({ boards, events }: Props) {
 
           <div>
             <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>KALENDER</div>
-            {weekEvents.length === 0
+            {thisWeekEvents.length === 0
               ? <div style={{ fontSize:13, color:'#555' }}>Ingen begivenheder denne uge</div>
-              : weekEvents.map((ev, idx) => (
+              : thisWeekEvents.map((ev, idx) => (
+                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(ev.owner)}
+                    <span>{ev.label}: {ev.text}</span>
+                  </div>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={sectionStyle}>
+        <h3 style={{ fontFamily:"'Space Grotesk'", fontSize:18, marginBottom:10 }}>Næste uge</h3>
+
+        <div style={gridStyle}>
+          <div>
+            <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>OPGAVER</div>
+            {nextWeekTasks.length === 0
+              ? <div style={{ fontSize:13, color:'#555' }}>Ingen opgaver næste uge</div>
+              : nextWeekTasks.map(({ card, boardName, listName }) => (
+                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(card.owner)}
+                    <div style={{ display:'flex', flexDirection:'column' }}>
+                      <span>{card.title}</span>
+                      <span style={{ fontSize:11, color:'#777' }}>{card.due} · {boardName} / {listName}</span>
+                    </div>
+                  </div>
+                ))}
+          </div>
+
+          <div>
+            <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>KALENDER</div>
+            {nextWeekEvents.length === 0
+              ? <div style={{ fontSize:13, color:'#555' }}>Ingen begivenheder næste uge</div>
+              : nextWeekEvents.map((ev, idx) => (
+                  <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(ev.owner)}
+                    <span>{ev.label}: {ev.text}</span>
+                  </div>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={sectionStyle}>
+        <h3 style={{ fontFamily:"'Space Grotesk'", fontSize:18, marginBottom:10 }}>Næste måned</h3>
+
+        <div style={gridStyle}>
+          <div>
+            <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>OPGAVER</div>
+            {nextMonthTasks.length === 0
+              ? <div style={{ fontSize:13, color:'#555' }}>Ingen opgaver næste måned</div>
+              : nextMonthTasks.map(({ card, boardName, listName }) => (
+                  <div key={card.id} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
+                    {ownerChip(card.owner)}
+                    <div style={{ display:'flex', flexDirection:'column' }}>
+                      <span>{card.title}</span>
+                      <span style={{ fontSize:11, color:'#777' }}>{card.due} · {boardName} / {listName}</span>
+                    </div>
+                  </div>
+                ))}
+          </div>
+
+          <div>
+            <div style={{ fontSize:11, color:'#666', marginBottom:6, letterSpacing:'.5px' }}>KALENDER</div>
+            {nextMonthEvents.length === 0
+              ? <div style={{ fontSize:13, color:'#555' }}>Ingen begivenheder næste måned</div>
+              : nextMonthEvents.map((ev, idx) => (
                   <div key={idx} style={{ fontSize:13, color:'#ddd', marginBottom:6, display:'flex', alignItems:'center', gap:8 }}>
                     {ownerChip(ev.owner)}
                     <span>{ev.label}: {ev.text}</span>

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Board, CalendarEvents } from '@/lib/types'
 import { useLocalStorage } from '@/lib/useLocalStorage'
 import { DEFAULT_BOARDS, DEFAULT_EVENTS, CARD_COLORS, uid } from '@/lib/constants'
@@ -18,6 +18,10 @@ export default function Home() {
   const [newEmoji, setNewEmoji]           = useState('📋')
 
   const activeBoard = boards.find(b => b.id === activeId)
+
+  // Undgå at første render overskriver data i backend
+  const initialBoardsSyncSkipped = useRef(false)
+  const initialEventsSyncSkipped = useRef(false)
 
   // Load initial data from backend once local state is ready
   useEffect(() => {
@@ -51,6 +55,10 @@ export default function Home() {
   // Sync changes to backend so data er delt mellem enheder
   useEffect(() => {
     if (!boardsLoaded) return
+    if (!initialBoardsSyncSkipped.current) {
+      initialBoardsSyncSkipped.current = true
+      return
+    }
     ;(async () => {
       try {
         await fetch('/api/boards', {
@@ -66,6 +74,10 @@ export default function Home() {
 
   useEffect(() => {
     if (!eventsLoaded) return
+    if (!initialEventsSyncSkipped.current) {
+      initialEventsSyncSkipped.current = true
+      return
+    }
     ;(async () => {
       try {
         await fetch('/api/events', {

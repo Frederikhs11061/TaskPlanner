@@ -8,8 +8,7 @@ import PlannerView from '@/components/PlannerView'
 
 export default function Home() {
   const [boards, setBoards, boardsLoaded] = useLocalStorage<Board[]>('taskflow-boards', DEFAULT_BOARDS)
-  const [events, setEvents]               = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)[0]
-  const [, setEventsRaw]                  = [events, useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)[1]]
+  const [eventsState, setEventsState]     = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
   const [activeId, setActiveId]           = useState<string>('board-1')
   const [activeTab, setActiveTab]         = useState<'board' | 'planner'>('board')
   const [searchOpen, setSearchOpen]       = useState(false)
@@ -17,9 +16,6 @@ export default function Home() {
   const [addingBoard, setAddingBoard]     = useState(false)
   const [newName, setNewName]             = useState('')
   const [newEmoji, setNewEmoji]           = useState('📋')
-
-  // Re-derive events state properly
-  const [eventsState, setEventsState] = useLocalStorage<CalendarEvents>('taskflow-events', DEFAULT_EVENTS)
 
   const activeBoard = boards.find(b => b.id === activeId)
 

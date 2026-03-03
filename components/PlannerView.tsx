@@ -47,17 +47,17 @@ export default function PlannerView({ events, onUpdate }: Props) {
     <div className="planner-root" style={{ flex:1, overflow:'auto', padding:22, display:'flex', gap:18 }}>
       {/* Calendar grid */}
       <div className="planner-main" style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
+        <div className="planner-header-row" style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18 }}>
           <button onClick={prevMonth} style={{ background:'#1e1e2a', border:'1px solid #2a2a38', borderRadius:8, color:'#ccc', padding:'6px 13px', cursor:'pointer', fontSize:17 }}>‹</button>
           <h2 style={{ fontFamily:"'Space Grotesk'", fontSize:22, fontWeight:700, flex:1 }}>{MONTHS[month]} {year}</h2>
           <button onClick={nextMonth} style={{ background:'#1e1e2a', border:'1px solid #2a2a38', borderRadius:8, color:'#ccc', padding:'6px 13px', cursor:'pointer', fontSize:17 }}>›</button>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:4 }}>
+        <div className="planner-weekdays" style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:4 }}>
           {DAYS.map(d => <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:700, color:'#444', padding:'5px 0', letterSpacing:'.5px' }}>{d.toUpperCase()}</div>)}
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
+        <div className="planner-grid" style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
           {cells.map((d, i) => {
             if (!d) return <div key={`e-${i}`} />
             const k    = calKey(year, month, d)
@@ -89,7 +89,7 @@ export default function PlannerView({ events, onUpdate }: Props) {
       {/* Side panel */}
       <div className="planner-side" style={{ width:296, maxWidth:'100%', flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
         {selectedDay ? (
-          <div style={{ background:'#1a1a24', borderRadius:14, border:'1px solid #2a2a38', overflow:'hidden' }}>
+          <div className="planner-selected-card" style={{ background:'#1a1a24', borderRadius:14, border:'1px solid #2a2a38', overflow:'hidden' }}>
             <div style={{ background:'linear-gradient(135deg,rgba(108,99,255,.28),rgba(199,125,255,.15))', padding:'14px 16px', borderBottom:'1px solid #2a2a38' }}>
               <div style={{ fontSize:11, color:'#888', letterSpacing:'.5px', marginBottom:1 }}>{MONTHS[month]} {year}</div>
               <div style={{ fontFamily:"'Space Grotesk'", fontSize:30, fontWeight:700, lineHeight:1 }}>{selectedDay}</div>
@@ -114,13 +114,13 @@ export default function PlannerView({ events, onUpdate }: Props) {
             </div>
           </div>
         ) : (
-          <div style={{ background:'#1a1a24', borderRadius:14, border:'1px dashed #2a2a38', padding:22, textAlign:'center' }}>
+          <div className="planner-selected-empty" style={{ background:'#1a1a24', borderRadius:14, border:'1px dashed #2a2a38', padding:22, textAlign:'center' }}>
             <div style={{ fontSize:28, marginBottom:8 }}>📅</div>
             <div style={{ color:'#555', fontSize:13 }}>Klik på en dag for at tilføje begivenheder</div>
           </div>
         )}
 
-        <div style={{ background:'#1a1a24', borderRadius:14, border:'1px solid #2a2a38', padding:14, flex:1, overflow:'auto' }}>
+        <div className="planner-month-events" style={{ background:'#1a1a24', borderRadius:14, border:'1px solid #2a2a38', padding:14, flex:1, overflow:'auto' }}>
           <div style={{ fontSize:11, color:'#555', letterSpacing:'.5px', marginBottom:12, fontWeight:700 }}>DENNE MÅNEDS BEGIVENHEDER</div>
           {monthEvents.length === 0
             ? <div style={{ color:'#444', fontSize:13 }}>Ingen begivenheder endnu</div>

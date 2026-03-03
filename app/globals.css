@@ -69,8 +69,9 @@ input, textarea, button { font-family: inherit; outline: none; }
 
   .planner-root {
     flex-direction: column;
-    padding: 14px 10px !important;
-    gap: 12px;
+    padding: 12px 10px 16px !important;
+    gap: 10px;
+    align-items: stretch;
   }
 
   .planner-main {
@@ -79,5 +80,38 @@ input, textarea, button { font-family: inherit; outline: none; }
 
   .planner-side {
     width: 100% !important;
+  }
+
+  .planner-header-row h2 {
+    font-size: 18px !important;
+  }
+
+  .planner-header-row button {
+    padding: 4px 9px !important;
+  }
+
+  .planner-weekdays div {
+    font-size: 10px !important;
+  }
+
+  .planner-grid {
+    gap: 3px !important;
+  }
+
+  .cal-day {
+    min-height: 64px !important;
+    padding: 6px 4px !important;
+  }
+
+  .planner-selected-card {
+    margin-top: 2px;
+  }
+
+  .planner-selected-empty {
+    padding: 16px 14px !important;
+  }
+
+  .planner-month-events {
+    max-height: 220px;
   }
 }

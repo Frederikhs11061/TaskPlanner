@@ -204,7 +204,7 @@ export default function Home() {
             autoFocus
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Søg på tværs af alle tavler og opgaver..."
+            placeholder="Søg på tværs af alle tavler, lister og opgaver..."
             style={{ width:'100%', maxWidth:620, background:'#1e1e2a', border:'1px solid #3a3a50', borderRadius:10, padding:'10px 16px', color:'#f0f0f5', fontSize:14 }}
           />
           {searchQuery.trim().length > 1 && (

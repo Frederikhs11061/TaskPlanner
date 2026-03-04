@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { Priority } from '@/lib/types'
 import { CARD_COLORS, PRIORITY_CONFIG } from '@/lib/constants'
 
@@ -8,7 +9,7 @@ export interface EditData {
   due: string
   color: string
   priority: Priority
-  owner: string
+  image?: string
 }
 
 interface Props {
@@ -28,7 +29,16 @@ export default function EditCardModal({ data, onChange, onSave, onClose }: Props
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{ background:'#1e1e2a', borderRadius:18, padding:28, width:490, border:'1px solid #2a2a38', boxShadow:'0 28px 70px rgba(0,0,0,.65)' }}
+        style={{
+          background:'#1e1e2a',
+          borderRadius:18,
+          padding:28,
+          width:'min(520px, 100vw - 32px)',
+          maxHeight:'min(90vh, 720px)',
+          overflowY:'auto',
+          border:'1px solid #2a2a38',
+          boxShadow:'0 28px 70px rgba(0,0,0,.65)',
+        }}
       >
         <h3 style={{ marginBottom:22, fontFamily:"'Space Grotesk'", fontSize:18, fontWeight:700 }}>Rediger opgave</h3>
 
@@ -36,14 +46,41 @@ export default function EditCardModal({ data, onChange, onSave, onClose }: Props
         <input value={data.title} onChange={e => set({ title: e.target.value })}
           style={inputStyle} />
 
-        <Label>ANSVARLIG / INITIALER</Label>
-        <input value={data.owner} onChange={e => set({ owner: e.target.value })}
-          style={inputStyle} />
-
         <Label>BESKRIVELSE</Label>
         <textarea value={data.desc} onChange={e => set({ desc: e.target.value })} rows={3}
           placeholder="Tekst eller indsæt et link…"
           style={{ ...inputStyle, resize:'vertical', lineHeight:1.5 }} />
+
+        <Label>BILLEDE (VALGFRIT)</Label>
+        <div style={{ marginBottom:16 }}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0]
+              if (!file) {
+                set({ image: undefined })
+                return
+              }
+              if (!file.type.startsWith('image/')) return
+              const reader = new FileReader()
+              reader.onloadend = () => {
+                set({ image: typeof reader.result === 'string' ? reader.result : undefined })
+              }
+              reader.readAsDataURL(file)
+            }}
+            style={{ fontSize:11, color:'#888' }}
+          />
+          {data.image && (
+            <div style={{ marginTop:10, borderRadius:10, overflow:'hidden', border:'1px solid #2a2a38', maxHeight:260 }}>
+              <img
+                src={data.image}
+                alt="Vedhæftet billede"
+                style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}
+              />
+            </div>
+          )}
+        </div>
 
         <div style={{ display:'flex', gap:16, marginBottom:16 }}>
           <div style={{ flex:1 }}>

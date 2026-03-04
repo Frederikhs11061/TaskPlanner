@@ -8,7 +8,7 @@ export interface Card {
   color: string
   due: string
   priority: Priority
-  owner?: string
+  image?: string
 }
 
 export interface List {

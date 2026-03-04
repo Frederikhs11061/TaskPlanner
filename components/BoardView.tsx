@@ -19,8 +19,17 @@ export default function BoardView({ board, onUpdate }: Props) {
 
   function updateLists(fn: (b: Board) => Board) { onUpdate(fn(board)) }
 
-  function addCard(listId: string, title: string, desc: string, priority: Priority, owner: string) {
-    const card: Card = { id: uid(), title, desc, done: false, color: CARD_COLORS[0], due: '', priority, owner: owner || undefined }
+  function addCard(listId: string, title: string, desc: string, priority: Priority, image?: string | null) {
+    const card: Card = {
+      id: uid(),
+      title,
+      desc,
+      done: false,
+      color: CARD_COLORS[0],
+      due: '',
+      priority,
+      image: image ?? undefined,
+    }
     updateLists(b => ({ ...b, lists: b.lists.map(l => l.id !== listId ? l : { ...l, cards: [...l.cards, card] }) }))
   }
 
@@ -56,7 +65,7 @@ export default function BoardView({ board, onUpdate }: Props) {
       due: card.due,
       color: card.color,
       priority: card.priority,
-      owner: card.owner ?? '',
+      image: card.image,
     })
   }
 

@@ -20,7 +20,7 @@ export const DEFAULT_BOARDS: Board[] = [
   {
     id: 'board-1', name: 'Arbejde', emoji: '💼', color: '#6C63FF',
     lists: [
-      { id: 'list-1', title: 'Backlog', cards: [] },
+      { id: 'list-1', title: 'Opgaver', cards: [] },
       { id: 'list-2', title: 'I gang',  cards: [] },
       { id: 'list-3', title: 'Færdig',  cards: [] },
     ],

@@ -7,7 +7,7 @@ import { EditData } from './EditCardModal'
 
 interface Props {
   list: List
-  onAddCard: (listId: string, title: string, desc: string, priority: Priority, owner: string) => void
+  onAddCard: (listId: string, title: string, desc: string, priority: Priority, image?: string | null) => void
   onDeleteCard: (listId: string, cardId: string) => void
   onToggleCard: (listId: string, cardId: string) => void
   onDeleteList: (listId: string) => void
@@ -95,8 +95,8 @@ export default function ListColumn({ list, onAddCard, onDeleteCard, onToggleCard
       <div style={{ padding:'5px 9px 9px' }}>
         {isAdding ? (
           <AddCardForm
-            onAdd={(title, desc, priority, owner) => {
-              onAddCard(list.id, title, desc, priority, owner)
+            onAdd={(title, desc, priority, image) => {
+              onAddCard(list.id, title, desc, priority, image)
               setIsAdding(false)
             }}
             onCancel={() => setIsAdding(false)}
